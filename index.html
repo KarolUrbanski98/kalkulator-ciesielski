@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Kalkulator Ciesielski</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a1a1a' width='100' height='100' rx='20'/><text y='70' x='50' text-anchor='middle' font-size='60'>⟁</text></svg>">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Kalk. Ciesielski">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding-bottom: 60px;
+    -webkit-text-size-adjust: 100%;
+  }
+  .header {
+    background: #1a1a1a;
+    padding: max(env(safe-area-inset-top), 16px) 20px 18px;
+    text-align: center;
+  }
+  .header h1 { font-size: 24px; font-weight: 800; color: #fff; }
+  .header h1 span { color: #00c853; }
+  .header p { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .container { max-width: 460px; margin: 0 auto; padding: 0 14px; }
+
+  .mode-bar {
+    display: flex; gap: 0; margin: 14px 0 6px;
+    border: 2px solid #1a1a1a; border-radius: 10px; overflow: hidden;
+  }
+  .mode-btn {
+    flex: 1; padding: 10px 2px; text-align: center;
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.2px;
+    background: #fff; color: #1a1a1a;
+    border: none; cursor: pointer;
+    border-right: 1px solid #ddd;
+    transition: all 0.15s;
+  }
+  .mode-btn:last-child { border-right: none; }
+  .mode-btn.active { background: #1a1a1a; color: #00c853; }
+
+  .mode-desc {
+    text-align: center; font-size: 12px; color: #777;
+    margin: 4px 0 2px; font-style: italic;
+  }
+
+  .section-header {
+    display: flex; align-items: center; gap: 8px;
+    margin: 20px 0 10px;
+  }
+  .section-header .icon { font-size: 18px; }
+  .section-header .title {
+    font-size: 13px; font-weight: 800; color: #1a1a1a;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .section-header .line { flex: 1; height: 2px; background: #e0e0e0; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .card {
+    border-radius: 10px;
+    padding: 8px 12px 7px;
+    transition: all 0.2s;
+  }
+  .card-input {
+    background: #e8f5e9;
+    border: 2.5px solid #2e7d32;
+  }
+  .card-output {
+    background: #f5f5f5;
+    border: 2px solid #bbb;
+  }
+  .card .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+  .card-input .label { color: #1b5e20; }
+  .card-output .label { color: #444; }
+  .card .row { display: flex; align-items: baseline; gap: 4px; }
+  .card .val {
+    font-size: 20px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #1a1a1a;
+  }
+  .card input[type="number"] {
+    font-size: 20px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #1a1a1a; background: transparent;
+    border: none; outline: none; width: 100%;
+    -moz-appearance: textfield;
+  }
+  .card input::-webkit-outer-spin-button,
+  .card input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .card .unit { font-size: 11px; color: #555; font-weight: 600; }
+
+  .viz {
+    margin-top: 14px; background: #f0f0f0;
+    border-radius: 14px; padding: 14px 6px;
+    border: 2px solid #ccc;
+  }
+  .viz svg { width: 100%; max-width: 400px; display: block; margin: 0 auto; }
+
+  .info-box {
+    margin-top: 14px; padding: 10px 14px;
+    background: #fff8e1; border: 2px solid #f9a825;
+    border-radius: 10px; font-size: 12px; color: #5d4037;
+    line-height: 1.5;
+  }
+  .info-box b { color: #e65100; }
+
+  .clear-btn {
+    display: block; margin: 24px auto 0;
+    padding: 12px 40px; border-radius: 10px;
+    background: #fff; border: 2px solid #ccc;
+    font-size: 14px; font-weight: 700; color: #888;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .clear-btn:active { background: #eee; }
+
+  .empty-msg {
+    text-align: center; color: #bbb; font-size: 14px;
+    padding: 30px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>⟁</span> Kalkulator Ciesielski</h1>
+  <p>Obliczenia więźby dachowej — zaawansowany</p>
+</div>
+
+<div class="container">
+  <div class="mode-bar" id="modeBar"></div>
+  <div class="mode-desc" id="modeDesc"></div>
+
+  <div class="section-header">
+    <span class="icon">📐</span><span class="title">Dane wejściowe</span><div class="line"></div>
+  </div>
+  <div class="grid" id="inputGrid"></div>
+
+  <div class="viz"><svg id="roofsvg" viewBox="0 0 300 160"></svg></div>
+
+  <div id="results" style="display:none">
+    <div class="section-header">
+      <span class="icon">🏠</span><span class="title">Połać</span><div class="line"></div>
+    </div>
+    <div class="grid" id="polacGrid"></div>
+
+    <div class="section-header">
+      <span class="icon">📏</span><span class="title">Naroże</span><div class="line"></div>
+    </div>
+    <div class="grid" id="narozeGrid"></div>
+
+    <div class="section-header">
+      <span class="icon">🔧</span><span class="title">Kąty robocze</span><div class="line"></div>
+    </div>
+    <div class="grid" id="anglesGrid"></div>
+  </div>
+
+  <div id="infoBox" class="info-box" style="display:none"></div>
+
+  <button class="clear-btn" onclick="clearAll()">Wyczyść</button>
+</div>
+
+<script>
+const D2R = Math.PI/180, R2D = 180/Math.PI;
+
+const MODES = [
+  { inputs:['base','angle'], label:'Podstawa + Kąt', desc:'Podaj podstawę i kąt nachylenia' },
+  { inputs:['base','height'], label:'Podstawa + Wys.', desc:'Podaj podstawę i wysokość' },
+  { inputs:['rafter','angle'], label:'Krokiew + Kąt', desc:'Podaj długość krokwi i kąt' },
+  { inputs:['rafter','height'], label:'Krokiew + Wys.', desc:'Podaj długość krokwi i wysokość' },
+];
+
+const LABELS = { base:'Podstawa', angle:'Nachylenie', rafter:'Dł. krokwi', height:'Wysokość' };
+const UNITS = { base:'cm', angle:'°', rafter:'cm', height:'cm' };
+
+let mode = 0;
+let vals = { base:'300', angle:'30', rafter:'', height:'' };
+
+// Build mode bar
+const bar = document.getElementById('modeBar');
+MODES.forEach((m,i) => {
+  const btn = document.createElement('button');
+  btn.className = 'mode-btn' + (i===0?' active':'');
+  btn.textContent = m.label;
+  btn.onclick = () => setMode(i);
+  bar.appendChild(btn);
+});
+
+function setMode(m) {
+  mode = m;
+  bar.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', i===m));
+  document.getElementById('modeDesc').textContent = MODES[m].desc;
+  buildInputs();
+  calc();
+}
+
+function buildInputs() {
+  const grid = document.getElementById('inputGrid');
+  grid.innerHTML = '';
+  MODES[mode].inputs.forEach(key => {
+    const card = document.createElement('div');
+    card.className = 'card card-input';
+    card.innerHTML = `<div class="label">${LABELS[key]}</div>
+      <div class="row">
+        <input type="number" inputmode="decimal" step="any" value="${vals[key]}" oninput="onInp('${key}',this.value)">
+        <span class="unit">${UNITS[key]}</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function onInp(k,v) { vals[k]=v; calc(); }
+
+function outputCard(label, value, unit) {
+  return `<div class="card card-output"><div class="label">${label}</div><div class="row"><span class="val">${value}</span><span class="unit">${unit}</span></div></div>`;
+}
+
+function calc() {
+  const ins = MODES[mode].inputs;
+  const v = {};
+  let ok = true;
+  ins.forEach(k => { v[k]=parseFloat(vals[k]); if(isNaN(v[k])||v[k]<=0) ok=false; });
+  if(ins.includes('angle') && v.angle>=90) ok=false;
+
+  if(!ok) {
+    document.getElementById('results').style.display='none';
+    document.getElementById('infoBox').style.display='none';
+    drawEmpty(); return;
+  }
+
+  let base,angle,height,rafter;
+  switch(mode){
+    case 0: base=v.base; angle=v.angle; height=base*Math.tan(angle*D2R); rafter=base/Math.cos(angle*D2R); break;
+    case 1: base=v.base; height=v.height; angle=Math.atan(height/base)*R2D; rafter=Math.sqrt(base*base+height*height); break;
+    case 2: rafter=v.rafter; angle=v.angle; base=rafter*Math.cos(angle*D2R); height=rafter*Math.sin(angle*D2R); break;
+    case 3: rafter=v.rafter; height=v.height;
+      if(height>=rafter){document.getElementById('results').style.display='none';return;}
+      base=Math.sqrt(rafter*rafter-height*height); angle=Math.asin(height/rafter)*R2D; break;
+  }
+
+  const marking = 90 - angle;
+  const cBase = base * Math.sqrt(2);
+  const cRafter = Math.sqrt(cBase*cBase + height*height);
+  const cPitch = Math.atan(height/cBase)*R2D;
+  const backing = Math.atan(Math.tan(angle*D2R)*Math.sin(45*D2R))*R2D;
+  const cMarking = 90 - cPitch;
+  const toolAngle = Math.atan(Math.sin(cPitch*D2R)*Math.tan(45*D2R))*R2D;
+
+  document.getElementById('results').style.display='block';
+
+  // Połać
+  const polac = [];
+  if(!ins.includes('base')) polac.push(outputCard('Podstawa', base.toFixed(2), 'cm'));
+  if(!ins.includes('height')) polac.push(outputCard('Wysokość', height.toFixed(2), 'cm'));
+  if(!ins.includes('rafter')) polac.push(outputCard('Długość krokwi', rafter.toFixed(2), 'cm'));
+  if(!ins.includes('angle')) polac.push(outputCard('Nachylenie', angle.toFixed(2), '°'));
+  polac.push(outputCard('Kąt trasowania', marking.toFixed(2), '°'));
+  document.getElementById('polacGrid').innerHTML = polac.join('');
+
+  // Naroże
+  document.getElementById('narozeGrid').innerHTML = [
+    outputCard('Podstawa', cBase.toFixed(2), 'cm'),
+    outputCard('Długość krokwi', cRafter.toFixed(2), 'cm'),
+    outputCard('Nachylenie', cPitch.toFixed(2), '°'),
+    outputCard('Kąt fazowania', backing.toFixed(2), '°'),
+    outputCard('Kąt trasowania', cMarking.toFixed(2), '°'),
+    outputCard('Kąt narzędzi', toolAngle.toFixed(2), '°'),
+  ].join('');
+
+  // Kąty robocze
+  document.getElementById('anglesGrid').innerHTML = [
+    outputCard('Cięcie czołowe', angle.toFixed(2), '°'),
+    outputCard('Cięcie oparcia', marking.toFixed(2), '°'),
+    outputCard('Piła — naroże', toolAngle.toFixed(2), '°'),
+    outputCard('Fazowanie — naroże', backing.toFixed(2), '°'),
+  ].join('');
+
+  // Info
+  const info = document.getElementById('infoBox');
+  info.style.display='block';
+  info.innerHTML = `<b>Połać:</b> nachylenie ${angle.toFixed(1)}° → krokiew ${rafter.toFixed(0)} cm, podstawa ${base.toFixed(0)} cm, wys. ${height.toFixed(0)} cm<br>
+    <b>Naroże:</b> krokiew ${cRafter.toFixed(0)} cm, nachylenie ${cPitch.toFixed(1)}°. Piła: <b>${toolAngle.toFixed(1)}°</b>`;
+
+  drawRoof(base,angle,height,rafter);
+}
+
+function drawRoof(base,angle,height,rafter){
+  const w=300,ht=160,pad=28;
+  const sc=Math.min((w-pad*2)/base,(ht-pad*2)/Math.max(height,1));
+  const bPx=base*sc, hPx=height*sc;
+  const x0=(w-bPx)/2, y0=ht-pad, x1=x0+bPx, yTop=y0-hPx;
+  const ar=24, ax=x1-ar*Math.cos(angle*D2R), ay=y0-ar*Math.sin(angle*D2R);
+  document.getElementById('roofsvg').innerHTML=`
+    <polygon points="${x0},${y0} ${x1},${y0} ${x0},${yTop}" fill="#c62828" fill-opacity="0.85" stroke="#b71c1c" stroke-width="2"/>
+    <line x1="${x0}" y1="${y0}" x2="${x0}" y2="${yTop}" stroke="#2e7d32" stroke-width="2" stroke-dasharray="5 3"/>
+    <line x1="${x0}" y1="${y0+9}" x2="${x1}" y2="${y0+9}" stroke="#333" stroke-width="1.5"/>
+    <text x="${(x0+x1)/2}" y="${y0+22}" text-anchor="middle" fill="#333" font-size="11" font-family="monospace" font-weight="bold">${base.toFixed(0)} cm</text>
+    <text x="${x0-5}" y="${(y0+yTop)/2+4}" text-anchor="end" fill="#2e7d32" font-size="10" font-family="monospace" font-weight="bold">${height.toFixed(0)}</text>
+    <text x="${(x0+x1)/2+8}" y="${(y0+yTop)/2-6}" text-anchor="middle" fill="#fff" font-size="11" font-family="monospace" font-weight="bold">${rafter.toFixed(0)} cm</text>
+    <path d="M ${x1-ar},${y0} A ${ar} ${ar} 0 0 0 ${ax},${ay}" fill="none" stroke="#e65100" stroke-width="2.5"/>
+    <text x="${x1-38}" y="${y0-9}" fill="#e65100" font-size="11" font-family="monospace" font-weight="bold">${angle.toFixed(1)}°</text>`;
+}
+
+function drawEmpty(){
+  document.getElementById('roofsvg').innerHTML='<text x="150" y="85" text-anchor="middle" fill="#bbb" font-size="14">Wprowadź dane</text>';
+}
+
+function clearAll(){
+  vals={base:'',angle:'',rafter:'',height:''};
+  buildInputs();
+  document.getElementById('results').style.display='none';
+  document.getElementById('infoBox').style.display='none';
+  drawEmpty();
+}
+
+// Init
+setMode(0);
+</script>
+</body>
+</html>
